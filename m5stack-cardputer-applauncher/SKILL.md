@@ -1,0 +1,158 @@
+---
+name: m5stack-cardputer-applauncher
+description: Build, port, package, review, or debug M5Stack M5Cardputer Zero Linux apps that must appear in or be launched by APPLaunch/AppLauncher. Use when working with M5CardputerZero projects, APPLaunch `.desktop` entries, `/usr/share/APPLaunch`, LVGL 9.5 framebuffer or SDL builds, Cardputer Zero keyboard input, AArch64 packaging, Debian `.deb` staging, or AppLauncher integration failures.
+---
+
+# M5Stack Cardputer APPLaunch Apps
+
+## Core Workflow
+
+1. Locate the app target and launcher target. Prefer existing templates under `M5CardputerZero-*/projects/UserDemo`, `projects/Calculator`, `projects/HelloWorld`, and `projects/APPLaunch`.
+2. Decide launch mode:
+   - Default Cardputer apps to a real 320 x 170 LVGL GUI with `Terminal=false`.
+   - Use `Terminal=false` for framebuffer/LVGL GUI binaries. Put arguments, environment setup, and `cd` needs in a wrapper script.
+   - Use `Terminal=true` only when the user explicitly asks for CLI, terminal, or text-only behavior.
+3. Create or verify the `.desktop` entry first. APPLaunch only registers entries from `applications/*.desktop` with valid `Name` and `Exec`.
+4. Build for the correct backend:
+   - Local debug uses SDL, usually `CONFIG_V9_5_LV_USE_SDL=y`.
+   - Device build uses Linux framebuffer plus evdev, usually `CONFIG_V9_5_LV_USE_LINUX_FBDEV=y`, `CONFIG_V9_5_LV_USE_EVDEV=y`, `CONFIG_V9_5_LV_DRAW_SW_ASM_NEON=y`, and `CONFIG_TOOLCHAIN_PREFIX="aarch64-linux-gnu-"`.
+5. Every generated app must include an app-specific PNG icon/logo. Stage it under `applaunch/share/images/<slug>.png`, set `Icon=share/images/<slug>.png`, and install it into `/usr/share/APPLaunch/share/images`. Do not ship a generated app with no logo.
+6. If running on the Cardputer Zero device itself, install the app into `/usr/share/APPLaunch` automatically so the customer can see it in APPLaunch. Do not leave the app only in `dist/`, `/home/pi`, or a staging directory.
+7. If running on a development machine, package the app under `/usr/share/APPLaunch` layout or deploy the `.desktop` entry directly to the device for quick validation.
+8. Test registration, icon loading, launch, return-to-launcher behavior, keyboard input, and forced quit.
+
+Read `references/applauncher-contract.md` when implementing, reviewing, or debugging an app.
+
+## APPLaunch Contract
+
+Use these defaults unless the repo has a newer local contract:
+
+```ini
+[Desktop Entry]
+Name=MyApp
+Exec=bin/run-myapp
+Terminal=false
+Icon=share/images/myapp.png
+Type=Application
+```
+
+Device paths:
+
+- Launcher data root: `/usr/share/APPLaunch`
+- Desktop entries: `/usr/share/APPLaunch/applications/*.desktop`
+- App binaries and wrappers: `/usr/share/APPLaunch/bin`
+- Icons: `/usr/share/APPLaunch/share/images`
+- Fonts: `/usr/share/APPLaunch/share/font`
+- AppLauncher lock file: `/tmp/M5CardputerZero-APPLaunch_fcntl.lock`
+
+Hard rule for on-device work: when the current host is the Cardputer Zero, copy the final `.desktop`, wrapper/binary, support files, and icon into these paths and reload APPLaunch before finishing. The success criterion is that the customer can navigate the launcher, see the app entry with a logo, and launch it.
+
+Important parser rules:
+
+- `[Desktop Entry]` must match exactly.
+- `Name` and `Exec` are required.
+- `Icon`, `Terminal`, `Sysplause`, `Type`, and `TryExec` are optional.
+- `Terminal` and `Sysplause` are true only for `true`, `True`, or `1`; everything else is false.
+- Duplicate `Exec` values are skipped.
+- Relative `Icon` paths resolve under `/usr/share/APPLaunch`.
+- Relative `Exec` paths with a slash, such as `bin/run-myapp`, resolve under `/usr/share/APPLaunch`.
+- `Terminal=false` runs an executable path directly, so use a wrapper script if arguments are needed.
+- `Terminal=true` splits the command string on whitespace and does not implement shell quoting.
+
+## Implementation Notes
+
+Default every Cardputer APPLaunch app to a 320 x 170 LVGL GUI with `Terminal=false`. Treat terminal mode as an explicit opt-in for CLI, terminal, or text-only requests, not as a shortcut for simple apps.
+
+Do not implement ASCII/terminal apps unless the user explicitly asks for that interface.
+
+For GUI apps, target the 320 x 170 ST7789V screen. Avoid assuming a larger LVGL viewport. Use full-screen root objects, disable unwanted scrolling, and verify text fits at this size.
+
+For app icons/logos, provide a real 1:1 PNG asset. A simple generated 256 x 256 icon is acceptable for tiny demo apps, but it must be app-specific and visually distinct enough to identify in APPLaunch. Keep the `.desktop` `Icon` path relative to `/usr/share/APPLaunch`, for example `Icon=share/images/helloworld.png`.
+
+For Chinese or mixed Chinese/English UI text, do not rely on Montserrat or other Latin-only LVGL fonts; they render missing glyphs as square boxes on the Cardputer Zero. Prefer enabling the built-in CJK fonts in the project config, especially `CONFIG_V9_5_LV_FONT_SOURCE_HAN_SANS_SC_14_CJK=y` and `CONFIG_V9_5_LV_FONT_SOURCE_HAN_SANS_SC_16_CJK=y`, then explicitly set Chinese labels to `lv_font_source_han_sans_sc_14_cjk` or `lv_font_source_han_sans_sc_16_cjk`. If larger sizes or fuller glyph coverage are needed, load a runtime font with `lv_tiny_ttf_create_file()` from packaged or system fonts such as `NotoSansCJK-Regular.ttc`, `NotoSansSC-Regular.ttf`, `SourceHanSansSC-Regular.otf`, or `wqy-zenhei.ttc`; package the font under APPLaunch or document/install the required system font. Always test Chinese text on the real framebuffer build, because SDL/macOS font fallback can hide missing embedded glyphs.
+
+For framebuffer selection, follow existing examples: respect `LV_LINUX_FBDEV_DEVICE` when set, otherwise scan `/proc/fb` for `fb_st7789v` and use `/dev/fbN`.
+
+For keyboard input, start from the existing app pattern. Simple apps can use `lv_evdev_create(LV_INDEV_TYPE_KEYPAD, "/dev/input/by-path/platform-3f804000.i2c-event")`. Apps that need text/codepoint handling should reuse the `keyboard_input.c` queue pattern and keymap `/usr/share/keymaps/tca8418_keypad_m5stack_keymap.map`.
+
+Default GUI navigation must treat `Esc` as the app-level back key: short press returns to the previous app screen or closes the current modal, while long press exits the current app cleanly. Do not bind short `Esc` to application exit unless the user explicitly asks for that behavior. Track press and release events or use an LVGL timer so long press works even when key repeat is unavailable.
+
+Make GUI apps exit cleanly on a local back/escape action where possible. APPLaunch can send `SIGINT` after a long Home hold and `SIGKILL` if the app does not exit, but a clean app exit gives better framebuffer and input recovery.
+
+## VibAPP / opencode Notes
+
+When VibAPP is launched from APPLaunch on the real device, APPLaunch runs as `root`, so VibAPP and opencode also use root-owned state by default:
+
+- opencode config: `/root/.config/opencode/opencode.json`
+- opencode skills: `/root/.config/opencode/skills`
+- VibAPP jobs: `/root/.local/share/vibapp/jobs`
+- VibAPP workspace: `/root/.local/share/vibapp/workspace`
+
+Do not assume that configuration installed only for `pi` will be visible to VibAPP. If opencode works from an SSH shell as `pi` but VibAPP jobs fail or produce empty output, check and repair the root opencode config and root skill installation too.
+
+VibAPP ships a built-in LVGL template at `/usr/share/APPLaunch/share/vibapp/templates/lvgl-basic-app` when installed through APPLaunch. Prefer this template before searching for a full SDK checkout. Copy the whole template into the generated `app_dir`, modify `main/src/main.cpp`, then build and stage with:
+
+```bash
+make -j1 APP_SLUG=<slug> APP_TITLE='<app name>'
+make stage APP_SLUG=<slug> APP_TITLE='<app name>'
+make install APP_SLUG=<slug> APP_TITLE='<app name>' APP_ROOT=/usr/share/APPLaunch
+```
+
+The template includes a prebuilt LVGL component library plus headers, so it does not require the 800MB SDK on the Cardputer Zero. If `make`, `g++`, or the template path is missing, fail clearly instead of inventing fake LVGL files or empty SConstruct projects.
+
+Do not run `scons` for the built-in VibAPP template. `scons` is only for full SDK projects that already have a real SDK checkout and SCons installed.
+
+Recent VibAPP versions copy the built-in template into `app_dir` before opencode starts. If `app_dir/Makefile` and `app_dir/main/src/main.cpp` exist, treat the template as available and work in `app_dir`; do not run another fragile template probe.
+
+VibAPP can receive an opencode exit code of 0 even when no files were generated. Treat a job as complete only after:
+
+- `result.json` exists and says `"status": "completed"`.
+- A valid `.desktop` file exists either under `/usr/share/APPLaunch/applications` or `app_dir/applaunch/applications`.
+- The `.desktop` has `[Desktop Entry]`, `Name`, `Exec`, `Terminal=false` for GUI apps, and `Icon`.
+- The `Exec` target exists and is executable.
+- The icon path exists and resolves under `/usr/share/APPLaunch/share` or the staged `applaunch/share`.
+
+If any of those checks fail, write a failed `result.json` with a concise reason. Do not mark a job completed just because opencode returned success or wrote reasoning text.
+
+## Packaging Helper
+
+Use `scripts/make_applauncher_package.py` to create a Debian staging tree and `.desktop` file:
+
+```bash
+python3 /Users/zhuzhe/.codex/skills/m5stack-cardputer-applauncher/scripts/make_applauncher_package.py \
+  --app-name MyApp \
+  --binary projects/MyApp/dist/M5CardputerZero-MyApp \
+  --icon assets/myapp.png \
+  --out build/applauncher-packages
+```
+
+Add `--deb` to run `dpkg-deb -b` after staging if `dpkg-deb` is installed.
+
+When running the helper on the Cardputer Zero itself, install to APPLaunch immediately:
+
+```bash
+python3 /Users/zhuzhe/.codex/skills/m5stack-cardputer-applauncher/scripts/make_applauncher_package.py \
+  --app-name MyApp \
+  --binary projects/MyApp/dist/M5CardputerZero-MyApp \
+  --icon assets/myapp.png \
+  --auto-install-cardputer
+```
+
+Use `--install-local` to force installation into `/usr/share/APPLaunch` even if auto-detection is inconclusive.
+
+## Validation Checklist
+
+- `.desktop` filename ends with `.desktop`.
+- `.desktop` has exact `[Desktop Entry]`, non-empty `Name`, and non-empty `Exec`.
+- `Exec` points to an executable that exists on the device or in the package.
+- `Icon` points to an app-specific PNG logo that exists on the device or in the package.
+- Default app mode is LVGL GUI at 320 x 170 with `Terminal=false`.
+- GUI app uses `Terminal=false`; CLI app uses `Terminal=true` only when explicitly requested.
+- GUI app has no command arguments in `Exec`; use a wrapper under `bin/` if needed.
+- Icon path exists, is PNG when possible, and resolves relative to `/usr/share/APPLaunch`.
+- Any Chinese UI text uses a CJK-capable LVGL font; real-device testing shows no square boxes or missing-glyph placeholders.
+- Device binary is Linux AArch64, not an SDL-only local debug binary.
+- Framebuffer app uses Linux fbdev and can find `fb_st7789v`.
+- Keyboard works on device; short `Esc` returns one level, long `Esc` exits the current app, and Home/forced quit behavior is defined.
+- On Cardputer Zero, generated files were actually copied under `/usr/share/APPLaunch` and APPLaunch was restarted/reloaded.
+- After install, restart or reload APPLaunch if the new entry is not visible: `sudo systemctl restart APPLaunch.service`.

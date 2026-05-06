@@ -1,0 +1,11 @@
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python generated files
+__pycache__/
+*.pyc
+
