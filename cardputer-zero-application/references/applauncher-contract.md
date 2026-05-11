@@ -1,8 +1,8 @@
-# M5Cardputer Zero APPLaunch Contract
+# Cardputer Zero APPLaunch Contract
 
 This reference summarizes the local APPLaunch behavior observed from:
 
-- `M5CardputerZero-Pulse/doc/APPLaunch-App-打包指南.md`
+- the APPLaunch application packaging guide in `M5CardputerZero-Pulse/doc/`
 - `M5CardputerZero-UserDemo/projects/APPLaunch/main/ui/components/ui_app_launch.cpp`
 - `M5CardputerZero-UserDemo/projects/APPLaunch/main/hal/linux/hal_paths_linux.c`
 - `M5CardputerZero-UserDemo/projects/APPLaunch/main/hal/sdl/hal_paths_sdl.c`
@@ -154,11 +154,11 @@ Control file minimum:
 Package: myapp
 Version: 0.1
 Architecture: arm64
-Maintainer: yourname <you@example.com>
+Maintainer: Your Name <you@example.com>
 Section: APPLaunch
 Priority: optional
-Homepage: https://www.m5stack.com
-Description: M5CardputerZero MyApp
+Homepage: https://cardputerzero.github.io
+Description: Cardputer Zero MyApp
 ```
 
 Use lowercase package names with no spaces. Architecture is `arm64`.
@@ -210,7 +210,7 @@ Do not report success only because the model command exited with code 0. A gener
 The packaging helper supports this:
 
 ```bash
-python3 /Users/zhuzhe/.codex/skills/m5stack-cardputer-applauncher/scripts/make_applauncher_package.py \
+python3 scripts/make_applauncher_package.py \
   --app-name MyApp \
   --binary projects/MyApp/dist/M5CardputerZero-MyApp \
   --icon assets/myapp.png \
@@ -253,6 +253,7 @@ Display:
 - Use Linux fbdev on device.
 - Respect `LV_LINUX_FBDEV_DEVICE` if set.
 - Otherwise scan `/proc/fb` for `fb_st7789v` and select `/dev/fbN`.
+- Do not assume `/dev/fb0`: the Cardputer Zero ST7789V LCD is commonly `/dev/fb1`; `/dev/fb0` may be HDMI or another framebuffer. Patch or wrap apps such as LoFiBox if they open `/dev/fb0` internally.
 
 Input:
 
@@ -296,7 +297,8 @@ Framebuffer blank or wrong:
 
 - Confirm the app was built for fbdev, not SDL.
 - Confirm `/proc/fb` includes `fb_st7789v`.
-- Try `LV_LINUX_FBDEV_DEVICE=/dev/fb0 /usr/share/APPLaunch/bin/run-myapp`.
+- Identify the ST7789V node with `awk '/fb_st7789v/ {print "/dev/fb" $1}' /proc/fb`; try `LV_LINUX_FBDEV_DEVICE=/dev/fb1 /usr/share/APPLaunch/bin/run-myapp` only after confirming that node.
+- If the app still paints the wrong display, check whether it opens `/dev/fb0` internally and patch or wrap that behavior.
 
 Keyboard missing:
 

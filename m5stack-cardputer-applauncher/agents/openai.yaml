@@ -1,4 +1,0 @@
-interface:
-  display_name: "M5Stack Cardputer AppLauncher"
-  short_description: "Build AppLauncher apps for Cardputer Zero"
-  default_prompt: "Use $m5stack-cardputer-applauncher to create and package an M5Cardputer Zero app for APPLaunch."

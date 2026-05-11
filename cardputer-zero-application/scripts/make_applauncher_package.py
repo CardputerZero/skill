@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create an APPLaunch .desktop file and Debian staging tree."""
+"""Create APPLaunch desktop metadata and Debian staging files."""
 
 from __future__ import annotations
 
@@ -96,7 +96,7 @@ def install_to_applaunch(stage: Path, restart: bool) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Create APPLaunch Debian staging files for M5Cardputer Zero apps."
+        description="Create APPLaunch Debian staging files for Cardputer Zero apps."
     )
     parser.add_argument("--app-name", required=True, help="Launcher display name.")
     parser.add_argument(
@@ -105,7 +105,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--version", default="0.1", help="Debian package version.")
     parser.add_argument(
-        "--revision", default="m5stack1", help="Debian package revision for .deb name."
+        "--revision",
+        default="m5stack1",
+        help="Debian package revision for .deb name. Defaults to the existing APPLaunch package convention.",
     )
     parser.add_argument(
         "--binary",
@@ -140,16 +142,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--maintainer",
-        default="m5stack <m5stack@m5stack.com>",
+        default="Cardputer Zero <dev@example.com>",
         help="Debian Maintainer field.",
     )
     parser.add_argument("--section", default="APPLaunch", help="Debian Section field.")
     parser.add_argument(
-        "--homepage", default="https://www.m5stack.com", help="Debian Homepage field."
+        "--homepage", default="https://cardputerzero.github.io", help="Debian Homepage field."
     )
     parser.add_argument(
         "--description",
-        help="Debian Description field. Defaults to 'M5CardputerZero <app-name>'.",
+        help="Debian Description field. Defaults to 'Cardputer Zero <app-name>'.",
     )
     parser.add_argument(
         "--deb",
@@ -164,7 +166,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--auto-install-cardputer",
         action="store_true",
-        help="Install locally when this host looks like an M5Cardputer Zero.",
+        help="Install locally when this host looks like a Cardputer Zero.",
     )
     parser.add_argument(
         "--no-restart",
@@ -224,7 +226,7 @@ def main() -> int:
     desktop_lines.append("Type=Application")
     write_text(apps_dir / f"{package}.desktop", "\n".join(desktop_lines) + "\n")
 
-    description = args.description or f"M5CardputerZero {args.app_name}"
+    description = args.description or f"Cardputer Zero {args.app_name}"
     control = "\n".join(
         [
             f"Package: {package}",
@@ -252,7 +254,7 @@ def main() -> int:
     if args.install_local or (args.auto_install_cardputer and is_cardputer_zero()):
         install_to_applaunch(stage, restart=not args.no_restart)
     elif args.auto_install_cardputer:
-        print("auto-install skipped: this host does not look like M5Cardputer Zero")
+        print("auto-install skipped: this host does not look like a Cardputer Zero")
 
     return 0
 
