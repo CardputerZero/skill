@@ -95,6 +95,10 @@ After the PR is merged:
 - Users can install via `sudo apt update && sudo apt install <package>`
 - The app appears in the on-device AppStore
 
+## Recommended UX Metadata
+
+For apps with user-facing UI or admin surfaces, recommend i18n support for Simplified Chinese, Japanese, and English. The default language should follow the system language automatically. If the app includes a calendar management admin console, document that users can switch language there and that this manual setting overrides the system language.
+
 ### Unpublish
 
 ```bash

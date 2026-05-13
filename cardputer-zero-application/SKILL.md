@@ -73,6 +73,8 @@ For app icons/logos, provide a real 1:1 PNG asset. A simple generated 256 x 256 
 
 For CJK or mixed CJK/Latin UI text, do not rely on Montserrat or other Latin-only LVGL fonts; they render missing glyphs as square boxes on the Cardputer Zero. Prefer enabling the built-in CJK fonts in the project config, especially `CONFIG_V9_5_LV_FONT_SOURCE_HAN_SANS_SC_14_CJK=y` and `CONFIG_V9_5_LV_FONT_SOURCE_HAN_SANS_SC_16_CJK=y`, then explicitly set CJK labels to `lv_font_source_han_sans_sc_14_cjk` or `lv_font_source_han_sans_sc_16_cjk`. If larger sizes or fuller glyph coverage are needed, load a runtime font with `lv_tiny_ttf_create_file()` from packaged or system fonts such as `NotoSansCJK-Regular.ttc`, `NotoSansSC-Regular.ttf`, `SourceHanSansSC-Regular.otf`, or `wqy-zenhei.ttc`; package the font under APPLaunch or document/install the required system font. Always test CJK text on the real framebuffer build, because SDL/macOS font fallback can hide missing embedded glyphs.
 
+For user-facing apps and admin surfaces, prefer i18n support for Simplified Chinese, Japanese, and English. Default language selection should follow the system language automatically. If the product includes a calendar management admin console, it should allow language switching there and treat that manual choice as an override of the system language.
+
 For framebuffer selection, follow existing examples: respect `LV_LINUX_FBDEV_DEVICE` when set, otherwise scan `/proc/fb` for `fb_st7789v` and use `/dev/fbN`. Do not hard-code `/dev/fb0`: on Cardputer Zero the small ST7789V LCD is commonly `/dev/fb1`, while `/dev/fb0` may be HDMI or another framebuffer. If a packaged app such as LoFiBox defaults to `/dev/fb0`, fix it with a wrapper, env var, CLI argument, or app patch so it opens the detected `fb_st7789v` device before marking launch as valid.
 
 For keyboard input, start from the existing app pattern. Simple apps can use `lv_evdev_create(LV_INDEV_TYPE_KEYPAD, "/dev/input/by-path/platform-3f804000.i2c-event")`. Apps that need text/codepoint handling should reuse the `keyboard_input.c` queue pattern and keymap `/usr/share/keymaps/tca8418_keypad_m5stack_keymap.map`.
@@ -153,6 +155,7 @@ Use `--install-local` to force installation into `/usr/share/APPLaunch` even if 
 - GUI app has no command arguments in `Exec`; use a wrapper under `bin/` if needed.
 - Icon path exists, is PNG when possible, and resolves relative to `/usr/share/APPLaunch`.
 - Any CJK UI text uses a CJK-capable LVGL font; real-device testing shows no square boxes or missing-glyph placeholders.
+- Recommended: user-facing UI supports Simplified Chinese, Japanese, and English; follows system language by default; and, for calendar management admin consoles, provides a language switch that overrides system language.
 - Device binary is Linux AArch64, not an SDL-only local debug binary.
 - Framebuffer app uses Linux fbdev, can find `fb_st7789v`, and does not assume `/dev/fb0`; verify the Cardputer Zero LCD path, often `/dev/fb1`.
 - Keyboard works on device; short `Esc` returns one level, long `Esc` exits the current app, and Home/forced quit behavior is defined.
