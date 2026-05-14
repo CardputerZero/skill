@@ -106,6 +106,8 @@ Icon resolution:
 - Absolute path becomes an LVGL path like `A:/absolute/path.png`.
 - Relative path becomes `A:/usr/share/APPLaunch/<relative>`.
 - For generated apps, do not leave it empty. Create a real PNG under `share/images`.
+- If the app does not already provide an icon, generate one from the app name and functional summary before staging. The bundled packaging helper does this automatically unless `--no-auto-icon` is set.
+- During interactive development, ask the user before generating a replacement icon when the choice affects branding. In non-interactive packaging, automated handoff, or direct publish/submit flows, generate the missing required icon automatically and rerun package validation.
 
 Prefer:
 
@@ -213,9 +215,13 @@ The packaging helper supports this:
 python3 scripts/make_applauncher_package.py \
   --app-name MyApp \
   --binary projects/MyApp/dist/M5CardputerZero-MyApp \
-  --icon assets/myapp.png \
+  --description "Calendar with online ICS sync and lunar details" \
   --auto-install-cardputer
 ```
+
+Pass `--icon assets/myapp.png` to use a project-provided icon instead of the automatic generator.
+
+Do not use `--no-auto-icon` unless `--icon` or `--icon-ref` is also provided. A generated APPLaunch package must not leave the `.desktop` `Icon` field empty.
 
 Use `--install-local` when auto-detection does not recognize the device but `/usr/share/APPLaunch` is the intended target.
 
@@ -292,6 +298,7 @@ Icon missing:
 - Use `Icon=share/images/myapp.png`.
 - Confirm the file exists under `/usr/share/APPLaunch/share/images`.
 - Prefer PNG assets sized for the carousel rather than large source images.
+- If no project icon exists, run `scripts/generate_app_icon.py` or package again without `--no-auto-icon` so the helper creates a function-aware PNG.
 
 Framebuffer blank or wrong:
 

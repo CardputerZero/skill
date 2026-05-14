@@ -10,6 +10,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -128,6 +129,23 @@ def build_parser() -> argparse.ArgumentParser:
         "--icon-ref",
         help="Icon reference to write without copying a file, for example share/images/math.png.",
     )
+    parser.add_argument(
+        "--icon-summary",
+        help="Functional summary used by the automatic icon generator. Defaults to --description or --app-name.",
+    )
+    parser.add_argument(
+        "--auto-icon",
+        dest="auto_icon",
+        action="store_true",
+        default=True,
+        help="Generate a function-aware PNG icon when --icon and --icon-ref are omitted. This is the default.",
+    )
+    parser.add_argument(
+        "--no-auto-icon",
+        dest="auto_icon",
+        action="store_false",
+        help="Do not generate an icon when --icon and --icon-ref are omitted.",
+    )
     parser.add_argument("--terminal", action="store_true", help="Set Terminal=true.")
     parser.add_argument(
         "--no-sysplause",
@@ -182,6 +200,10 @@ def main() -> int:
 
     if bool(args.binary) == bool(args.exec_cmd):
         raise SystemExit("provide exactly one of --binary or --exec")
+    if args.icon and args.icon_ref:
+        raise SystemExit("provide at most one of --icon or --icon-ref")
+    if not args.icon and not args.icon_ref and not args.auto_icon:
+        raise SystemExit("missing required icon: provide --icon/--icon-ref or omit --no-auto-icon")
 
     stage = args.out / f"debian-{package}"
     if stage.exists():
@@ -204,6 +226,26 @@ def main() -> int:
         exec_value = f"/usr/share/APPLaunch/bin/{binary_name}"
     else:
         exec_value = args.exec_cmd
+
+    if not args.icon and not args.icon_ref and args.auto_icon:
+        generated_icon = args.out / "generated-icons" / f"{package}.png"
+        generator = Path(__file__).with_name("generate_app_icon.py")
+        summary = args.icon_summary or args.description or args.app_name
+        subprocess.run(
+            [
+                sys.executable,
+                str(generator),
+                "--app-name",
+                args.app_name,
+                "--summary",
+                summary,
+                "--out",
+                str(generated_icon),
+                "--force",
+            ],
+            check=True,
+        )
+        args.icon = generated_icon
 
     icon_value = args.icon_ref
     if args.icon:
