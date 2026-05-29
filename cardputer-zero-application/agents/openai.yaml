@@ -1,4 +1,4 @@
 interface:
-  display_name: "Cardputer Zero Application"
+  display_name: "CardputerZero Application"
   short_description: "Build and package APPLaunch apps"
-  default_prompt: "Use $cardputer-zero-application to create, package, or debug a Cardputer Zero app for APPLaunch."
+  default_prompt: "Use $cardputer-zero-application to create, package, or debug a CardputerZero app for APPLaunch."

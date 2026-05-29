@@ -97,7 +97,7 @@ def install_to_applaunch(stage: Path, restart: bool) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Create APPLaunch Debian staging files for Cardputer Zero apps."
+        description="Create APPLaunch Debian staging files for CardputerZero apps."
     )
     parser.add_argument("--app-name", required=True, help="Launcher display name.")
     parser.add_argument(
@@ -160,7 +160,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--maintainer",
-        default="Cardputer Zero <dev@example.com>",
+        default="CardputerZero <dev@example.com>",
         help="Debian Maintainer field.",
     )
     parser.add_argument("--section", default="APPLaunch", help="Debian Section field.")
@@ -169,7 +169,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--description",
-        help="Debian Description field. Defaults to 'Cardputer Zero <app-name>'.",
+        help="Debian Description field. Defaults to 'CardputerZero <app-name>'.",
     )
     parser.add_argument(
         "--deb",
@@ -184,7 +184,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--auto-install-cardputer",
         action="store_true",
-        help="Install locally when this host looks like a Cardputer Zero.",
+        help="Install locally when this host looks like a CardputerZero.",
     )
     parser.add_argument(
         "--no-restart",
@@ -268,7 +268,7 @@ def main() -> int:
     desktop_lines.append("Type=Application")
     write_text(apps_dir / f"{package}.desktop", "\n".join(desktop_lines) + "\n")
 
-    description = args.description or f"Cardputer Zero {args.app_name}"
+    description = args.description or f"CardputerZero {args.app_name}"
     control = "\n".join(
         [
             f"Package: {package}",
@@ -296,7 +296,7 @@ def main() -> int:
     if args.install_local or (args.auto_install_cardputer and is_cardputer_zero()):
         install_to_applaunch(stage, restart=not args.no_restart)
     elif args.auto_install_cardputer:
-        print("auto-install skipped: this host does not look like a Cardputer Zero")
+        print("auto-install skipped: this host does not look like a CardputerZero")
 
     return 0
 

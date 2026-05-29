@@ -2,7 +2,7 @@
 """Generate a simple function-aware APPLaunch PNG icon.
 
 This intentionally uses only the Python standard library so it can run on a
-fresh Cardputer Zero or CI host without Pillow/ImageMagick.
+fresh CardputerZero or CI host without Pillow/ImageMagick.
 """
 
 from __future__ import annotations

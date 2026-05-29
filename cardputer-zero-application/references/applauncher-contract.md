@@ -1,4 +1,4 @@
-# Cardputer Zero APPLaunch Contract
+# CardputerZero APPLaunch Contract
 
 This reference summarizes the local APPLaunch behavior observed from:
 
@@ -160,14 +160,14 @@ Maintainer: Your Name <you@example.com>
 Section: APPLaunch
 Priority: optional
 Homepage: https://cardputerzero.github.io
-Description: Cardputer Zero MyApp
+Description: CardputerZero MyApp
 ```
 
 Use lowercase package names with no spaces. Architecture is `arm64`.
 
 ## On-Device Installation Rule
 
-When the current host is the Cardputer Zero device, install the final app into APPLaunch paths before considering the task complete:
+When the current host is the CardputerZero device, install the final app into APPLaunch paths before considering the task complete:
 
 ```text
 /usr/share/APPLaunch/applications/<app>.desktop
@@ -259,7 +259,7 @@ Display:
 - Use Linux fbdev on device.
 - Respect `LV_LINUX_FBDEV_DEVICE` if set.
 - Otherwise scan `/proc/fb` for `fb_st7789v` and select `/dev/fbN`.
-- Do not assume `/dev/fb0`: the Cardputer Zero ST7789V LCD is commonly `/dev/fb1`; `/dev/fb0` may be HDMI or another framebuffer. Patch or wrap apps such as LoFiBox if they open `/dev/fb0` internally.
+- Do not assume `/dev/fb0`: the CardputerZero ST7789V LCD is commonly `/dev/fb1`; `/dev/fb0` may be HDMI or another framebuffer. Patch or wrap apps such as LoFiBox if they open `/dev/fb0` internally.
 
 Input:
 
