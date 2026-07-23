@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Strict prepublish checks for CardputerZero AppStore submissions."""
+"""Strict prepublish checks for CardputerZero Application Store submissions."""
 
 from __future__ import annotations
 
@@ -264,7 +264,7 @@ def print_report(problems: list[Problem]) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Validate critical CardputerZero AppStore publish metadata and deb payload.")
+    parser = argparse.ArgumentParser(description="Validate critical CardputerZero Application Store publish metadata and deb payload.")
     parser.add_argument("--deb", required=True, type=Path, help="Path to the .deb that will be submitted.")
     parser.add_argument("--app-dir", type=Path, default=Path("."), help="App project directory containing app-builder.json.")
     parser.add_argument("--auto-fix-source-icon", action="store_true", help="Generate a missing source store.icon and update app-builder.json. Rebuild the .deb afterwards.")

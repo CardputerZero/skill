@@ -10,7 +10,7 @@ metadata:
 ## Core Workflow
 
 1. Locate the app target and launcher target. Prefer existing templates under `M5CardputerZero-*/projects/UserDemo`, `projects/Calculator`, `projects/HelloWorld`, and `projects/APPLaunch`.
-2. Audit required project items early: app name, launcher `.desktop`, executable/wrapper target, app-specific icon, package metadata, store metadata when publishing, fonts/assets required by the UI, and AppStore screenshots when submission is in scope. AppStore submission requires four clean 320 x 170 screenshots and packages `meta.json` image paths that are relative to the app directory in `pool/main/<pkg>/`. If anything required is missing, surface it before build/package work continues.
+2. Audit required project items early: app name, launcher `.desktop`, executable/wrapper target, app-specific icon, package metadata, store metadata when publishing, fonts/assets required by the UI, and Application Store screenshots when submission is in scope. Application Store submission requires four clean 320 x 170 screenshots and packages `meta.json` image paths that are relative to the app directory in `pool/main/<pkg>/`. If anything required is missing, surface it before build/package work continues.
 3. Decide launch mode:
    - Default Cardputer apps to a real 320 x 170 LVGL GUI with `Terminal=false`.
    - Use `Terminal=false` for framebuffer/LVGL GUI binaries. Put arguments, environment setup, and `cd` needs in a wrapper script.
@@ -22,9 +22,11 @@ metadata:
 6. Every generated app must include an app-specific PNG icon/logo. If the project does not already provide a suitable icon, generate one automatically from the app name and functional summary before packaging. Stage it under `applaunch/share/images/<slug>.png`, set `Icon=share/images/<slug>.png`, and install it into `/usr/share/APPLaunch/share/images`. Do not ship a generated app with no logo.
 7. If running on the CardputerZero device itself, install the app into `/usr/share/APPLaunch` automatically so the customer can see it in APPLaunch. Do not leave the app only in `dist/`, `/home/pi`, or a staging directory.
 8. If running on a development machine, package the app under `/usr/share/APPLaunch` layout or deploy the `.desktop` entry directly to the device for quick validation.
-9. Test registration, icon loading, launch, return-to-launcher behavior, keyboard input, and forced quit.
+9. When this skill creates a new app project, create `PUBLISH.md` in the app project root from `assets/PUBLISH.md`. Fill every field already known from the project and preserve the file for later updates; do not overwrite an existing publish record.
+10. Test registration, icon loading, launch, return-to-launcher behavior, keyboard input, and forced quit.
 
 Read `references/applauncher-contract.md` when implementing, reviewing, or debugging an app.
+Read `references/web-publish.md` when preparing or submitting a `.deb` through <https://dev.cardputer.cc/#/upload>.
 
 ## APPLaunch Contract
 
@@ -74,26 +76,35 @@ For app icons/logos, provide a real 1:1 PNG asset. A simple generated 256 x 256 
 
 Required item handling:
 
-- During interactive development, proactively tell the user when a necessary project item is missing, such as an app icon, `.desktop`, executable wrapper, required font, package metadata, store `meta.json` image paths, or AppStore screenshots. Ask whether they want help generating or staging it when the missing item has product/design impact.
+- During interactive development, proactively tell the user when a necessary project item is missing, such as an app icon, `.desktop`, executable wrapper, required font, package metadata, store `meta.json` image paths, or Application Store screenshots. Ask whether they want help generating or staging it when the missing item has product/design impact.
 - If the user is not available for interaction, the task is running as an automated handoff, or the user is already asking to package/publish/submit, repair missing required items automatically when the skill has a deterministic helper. For icons, generate the missing PNG and stage it; for `.desktop` files, create the minimal APPLaunch entry; for package staging, use the packaging helper defaults.
 - Do not continue toward packaging, installation, or publish with a known missing required item. Fix it, or fail clearly if it cannot be generated safely.
 - When auto-generating an item, keep it scoped and replaceable: write the generated icon under `share/images/<slug>.png` or the package staging `share/images` directory, and preserve user-provided assets when they already exist.
 
-AppStore asset metadata:
+Application Store asset metadata:
 
 - Distinguish source metadata from packages metadata. Source `app-builder.json` may point to source-tree assets such as `share/images/<slug>.png` or `store/screenshots/<name>.png`, but the packages repository `pool/main/<pkg>/meta.json` must point at the files as they are copied into `pool/main/<pkg>/`.
 - In packages `meta.json`, `icon` and every `screenshots` entry must be relative to `pool/main/<pkg>/`. Do not use absolute URLs, leading `/`, or source-tree paths that do not exist in the packages app directory. Preferred examples are `"icon": "calendar.png"` and `"screenshots": ["screenshots/month.png", "screenshots/detail.png", "screenshots/manage.png", "screenshots/settings.png"]`.
-- Submit exactly four AppStore screenshots. Each screenshot must be the clean CardputerZero screen content only: exactly 320 x 170 pixels, with no emulator window chrome, device frame, desktop background, scaling margins, black padding, or any area outside the app's 320 x 170 framebuffer. If the capture tool includes extra pixels, crop it before publishing.
+- Submit exactly four Application Store screenshots. Each screenshot must be the clean CardputerZero screen content only: exactly 320 x 170 pixels, with no emulator window chrome, device frame, desktop background, scaling margins, black padding, or any area outside the app's 320 x 170 framebuffer. If the capture tool includes extra pixels, crop it before publishing.
 - Use screenshots that cover distinct user-relevant states, such as primary view, detail view, management/settings view, and an input or secondary workflow. Do not submit four near-identical frames unless the app has only one meaningful screen.
 
-AppStore registry timestamps:
+Application Store registry timestamps:
 
-- Every submitted AppStore metadata record must include `published_at` and `updated_at`.
+- Every submitted Application Store metadata record must include `published_at` and `updated_at`.
 - Use ISO 8601 timestamps with seconds and an explicit timezone, for example `2026-05-14T23:20:55+08:00` or `2026-05-14T15:20:55Z`. Do not use date-only values or timestamps without seconds.
 - Treat `published_at` as the first accepted or released time for that package entry. Keep it stable after publication.
 - Treat `updated_at` as the latest meaningful package, asset, metadata, or review update time for the displayed version. Change it when the package version, screenshots, icon, description, permissions, or review status changes.
 - Do not let registry generation overwrite every app's `published_at` or `updated_at` with the registry build time. `generated_at` may use the build time, but per-app timestamps must come from app metadata or a known release/asset commit time.
 - When backfilling older packages, use the best known package publication, metadata commit, or asset commit timestamp and record it explicitly in the package metadata or registry override before publishing.
+
+Application Store publishing:
+
+- Support both the authenticated web portal at <https://dev.cardputer.cc/#/upload> and the `czdev publish --deb <file.deb>` CLI workflow. Do not describe them as the same interface.
+- For the web portal's current fields, browser-side checks, image normalization, ownership rules, and submission steps, read `references/web-publish.md`.
+- When creating a new app project, create `<app-root>/PUBLISH.md` from `assets/PUBLISH.md`, fill known values, and keep unknown values as explicit TODO items. Treat this as the persistent handoff record for the package path, listing copy, source repository, privacy choice, icon, screenshots, and submission result.
+- After a successful local cross-compile that produces a `.deb`, update the root `PUBLISH.md` with the actual package path plus package/version/architecture values. Then proactively ask the user whether they want help submitting it with the fields in `PUBLISH.md`.
+- Use a direct question such as: `The cross-compiled .deb is ready at <path>. Do you want me to open the Application Store upload page and submit it using PUBLISH.md?`
+- Do not upload or submit the package without an affirmative user response. Submission authenticates as the user's GitHub account and creates an externally visible publish workflow or pull request.
 
 When the user has not provided an icon, infer the app's core function from its name, README, prompt, `app-builder.json` description/store summary, and visible UI, then generate an icon before staging. Prefer a concrete functional symbol over initials or generic gradients: calendar grid for calendar/schedule apps, note sheet for text apps, music note for audio apps, calculator for math apps, terminal prompt for CLI/dev tools, game controls for games, cloud/sun for weather, globe/network for online sync, and gear only for settings/admin utilities. If an AI bitmap generator such as the `imagegen` skill or a local asset pipeline is available and the task benefits from a richer icon, use it to create a square PNG and verify it at launcher size. Otherwise use the bundled deterministic generator:
 
@@ -205,9 +216,11 @@ Use `--install-local` to force installation into `/usr/share/APPLaunch` even if 
 - GUI app uses `Terminal=false`; CLI app uses `Terminal=true` only when explicitly requested.
 - GUI app has no command arguments in `Exec`; use a wrapper under `bin/` if needed.
 - Icon path exists, is PNG when possible, and resolves relative to `/usr/share/APPLaunch`.
-- For AppStore submission, packages `meta.json` image paths are relative to `pool/main/<pkg>/`: icon usually `<icon>.png`, screenshots usually `screenshots/<name>.png`; no absolute URLs, leading `/`, or stale source-tree paths.
-- For AppStore submission, exactly four screenshots are present, each image is exactly 320 x 170 pixels, and none includes emulator chrome, window borders, padding, or content outside the app framebuffer.
-- For AppStore submission, `published_at` and `updated_at` are present, stable, ISO 8601 formatted to seconds, and include an explicit timezone.
+- For Application Store submission, packages `meta.json` image paths are relative to `pool/main/<pkg>/`: icon usually `<icon>.png`, screenshots usually `screenshots/<name>.png`; no absolute URLs, leading `/`, or stale source-tree paths.
+- For Application Store submission, exactly four screenshots are present, each image is exactly 320 x 170 pixels, and none includes emulator chrome, window borders, padding, or content outside the app framebuffer.
+- For Application Store submission, `published_at` and `updated_at` are present, stable, ISO 8601 formatted to seconds, and include an explicit timezone.
+- Skill-created app projects have a root `PUBLISH.md` based on `assets/PUBLISH.md`; known package and listing fields are filled and unknown fields remain visible TODOs.
+- After a successful local cross-compile, `PUBLISH.md` contains the actual `.deb` path and parsed package/version/architecture, and the user was proactively asked whether they want help submitting through the web portal.
 - Any CJK UI text uses a CJK-capable LVGL font; real-device testing shows no square boxes or missing-glyph placeholders.
 - Recommended: user-facing UI supports Simplified Chinese, Japanese, and English; follows system language by default; and, for calendar management admin consoles, provides a language switch that overrides system language.
 - Device binary is Linux AArch64, not an SDL-only local debug binary.

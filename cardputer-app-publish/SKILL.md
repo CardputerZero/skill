@@ -1,6 +1,6 @@
 ---
 name: cardputer-app-publish
-description: Guide users through publishing CardputerZero apps to the AppStore using czdev CLI. Covers login, publish, PR review, and release lifecycle.
+description: Guide users through publishing CardputerZero apps to the Application Store using czdev CLI. Covers login, publish, PR review, and release lifecycle.
 metadata:
   short-description: Publish CardputerZero apps via czdev
 ---
@@ -9,7 +9,7 @@ metadata:
 
 ## Overview
 
-CardputerZero apps are published to the official AppStore via the `czdev` CLI tool. The canonical reference for the publish workflow is:
+CardputerZero apps are published to the official Application Store via the `czdev` CLI tool. The canonical reference for the publish workflow is:
 
 - **SSOT (Single Source of Truth):** <https://github.com/m5stack/CardputerZero-AppBuilder>
 - **README:** <https://github.com/m5stack/CardputerZero-AppBuilder/blob/main/README.md>
@@ -47,7 +47,7 @@ CardputerZero apps are published to the official AppStore via the `czdev` CLI to
       │                                              │
       │         4. Release pipeline triggers         │
       │              • Updates APT repo index        │
-      │              • App appears in AppStore       │
+      │              • App appears in Application Store       │
       │                                              │
 ```
 
@@ -139,7 +139,7 @@ python3 /path/to/cardputer-app-publish/scripts/prepublish_check.py \
   --app-dir .
 ```
 
-Treat any `ERROR` as a hard blocker. Do not run `czdev publish` until the check passes. The check enforces the critical AppStore information that `czdev` may not fully reject on its own:
+Treat any `ERROR` as a hard blocker. Do not run `czdev publish` until the check passes. The check enforces the critical Application Store information that `czdev` may not fully reject on its own:
 
 - `app-builder.json` exists and has a `store` object.
 - `store.summary`, `store.categories`, `store.icon`, and at least one `store.screenshots` entry are present.
@@ -174,7 +174,7 @@ You'll see a PR URL in the output.
 After the PR is merged:
 - The package appears in `cardputerzero.github.io/packages`
 - Users can install via `sudo apt update && sudo apt install <package>`
-- The app appears in the on-device AppStore
+- The app appears in the on-device Application Store
 
 ## Recommended UX Metadata
 

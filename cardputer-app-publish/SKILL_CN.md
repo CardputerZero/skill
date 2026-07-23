@@ -1,6 +1,6 @@
 ---
 name: cardputer-app-publish
-description: 指导用户通过 czdev CLI 将 CardputerZero 应用发布到 AppStore。涵盖登录、发布、PR 审核及上架全流程。
+description: 指导用户通过 czdev CLI 将 CardputerZero 应用发布到 Application Store。涵盖登录、发布、PR 审核及上架全流程。
 metadata:
   short-description: 通过 czdev 发布 CardputerZero 应用
 ---
@@ -9,7 +9,7 @@ metadata:
 
 ## 概述
 
-CardputerZero 应用通过 `czdev` 命令行工具发布到官方 AppStore。权威参考文档：
+CardputerZero 应用通过 `czdev` 命令行工具发布到官方 Application Store。权威参考文档：
 
 - **唯一信息源 (SSOT)：** <https://github.com/m5stack/CardputerZero-AppBuilder>
 - **README：** <https://github.com/m5stack/CardputerZero-AppBuilder/blob/main/README.md>
@@ -47,7 +47,7 @@ CardputerZero 应用通过 `czdev` 命令行工具发布到官方 AppStore。权
       │                                              │
       │         4. 发布流水线触发                      │
       │              • 更新 APT 仓库索引              │
-      │              • 应用上架 AppStore              │
+      │              • 应用上架 Application Store              │
       │                                              │
 ```
 
@@ -139,7 +139,7 @@ python3 /path/to/cardputer-app-publish/scripts/prepublish_check.py \
   --app-dir .
 ```
 
-任何 `ERROR` 都是硬阻塞；检查未通过时不要执行 `czdev publish`。该检查会强制验证 `czdev` 可能不会完整拦截的 AppStore 关键信息：
+任何 `ERROR` 都是硬阻塞；检查未通过时不要执行 `czdev publish`。该检查会强制验证 `czdev` 可能不会完整拦截的 Application Store 关键信息：
 
 - `app-builder.json` 存在，且包含 `store` 对象。
 - `store.summary`、`store.categories`、`store.icon`、至少一个 `store.screenshots` 都已填写。
@@ -174,7 +174,7 @@ czdev publish --deb build/my_app_1.0.1_arm64.deb
 PR 合并后：
 - 包出现在 `cardputerzero.github.io/packages`
 - 用户可通过 `sudo apt update && sudo apt install <包名>` 安装
-- 应用出现在设备端 AppStore 中
+- 应用出现在设备端 Application Store 中
 
 ### 下架
 
