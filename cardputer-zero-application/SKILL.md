@@ -70,7 +70,7 @@ Do not implement ASCII/terminal apps unless the user explicitly asks for that in
 
 For GUI apps, target the 320 x 170 ST7789V screen. Avoid assuming a larger LVGL viewport. Use full-screen root objects, disable unwanted scrolling, and verify text fits at this size.
 
-For app icons/logos, provide a real 1:1 PNG asset. A simple generated 256 x 256 icon is acceptable for tiny demo apps, but it must be app-specific and visually distinct enough to identify in APPLaunch. Keep the `.desktop` `Icon` path relative to `/usr/share/APPLaunch`, for example `Icon=share/images/helloworld.png`.
+For app icons/logos, provide a real 1:1 PNG asset. A simple generated 256 x 256 icon is acceptable for tiny demo apps, but it must be app-specific and visually distinct enough to identify in APPLaunch. Keep the `.desktop` `Icon` path relative to `/usr/share/APPLaunch`, for example `Icon=share/images/helloworld.png`. When the provided icon already uses a square canvas, do not recommend that the user manually add rounded corners, and do not automatically bake rounded-corner transparency into the PNG. Preserve the complete square artwork unless the user explicitly requests rounded corners or an established brand asset already includes them.
 
 Required item handling:
 
